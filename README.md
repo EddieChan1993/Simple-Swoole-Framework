@@ -3,7 +3,7 @@
 
 -----------
 ## 简单部署
-<pre><code>git clone git@github.com:ljj7410/Simple-Swoole-Framework.git</code></pre>
+<pre><code>git clone https://github.com/ljj7410/Simple-Swoole-Framework.git</code></pre>
 <pre><code>php index.php start //开启应用，第一次开启将会自动生成[apps]应用目录
 php index.php stop //关闭应用
 php index.php reload //热更新
