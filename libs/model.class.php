@@ -173,7 +173,7 @@ Class Model {
      * @param boolean $cache 是否使用缓存（效率较低的语句建议开启缓存）
      * @return array 结果集数组
      */
-    public function find(bool $cache = false)
+    public function getone(bool $cache = false)
     {
         $rs = $this->db[$this->dbname]->getone($cache);
         return $rs;
@@ -221,7 +221,7 @@ Class Model {
      * @param bool $return 是否返回插入的ID
      * @return array
      */
-    public function add(array $datas = [], bool $return = false)
+    public function insert(array $datas = [], bool $return = false)
     {
         $rs = $this->db[$this->dbname]->insert($datas, $return);
         return $rs;
@@ -232,7 +232,7 @@ Class Model {
      * @param array $dataAll 要插入的数据数组
      * @return array
      */
-    public function addAll(array $dataAll)
+    public function insertAll(array $dataAll)
     {
         $rs = $this->db[$this->dbname]->insertAll($dataAll);
         return $rs;
@@ -243,7 +243,7 @@ Class Model {
      * @param array $datas 要更新的数据数组
      * @return array
      */
-    public function save(array $datas = [])
+    public function update(array $datas = [])
     {
         $rs = $this->db[$this->dbname]->update($datas);
         return $rs;

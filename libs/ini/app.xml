@@ -56,7 +56,7 @@ return [
         'DB_USER'   => 'root', // 用户名
         'DB_PASS'   => '123456', // 密码
         'DB_PORT'   => '3306', // 端口
-        'DB_PREFIX' => 'di_', // 数据库表前缀
+        'DB_PREFIX' => '', // 数据库表前缀
         'DB_CHARSET'=> 'utf8mb4' // 字符集
     ]
 ];
