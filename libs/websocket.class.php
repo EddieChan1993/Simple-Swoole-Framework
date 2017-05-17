@@ -56,7 +56,7 @@ abstract class Websocket
      */
     Static Public function open($request, &$response)
     {
-        $response->header('Server', 'DeanPHP-websocket');
+        $response->header('Server', 'SSF-websocket');
         $response->header('Upgrade','websocket');
         $response->header('Connection','Upgrade');
         $websocketStr = $request->header['sec-websocket-key'].'258EAFA5-E914-47DA-95CA-C5AB0DC85B11';

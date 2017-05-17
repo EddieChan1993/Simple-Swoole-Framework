@@ -34,8 +34,10 @@ class ViewModel extends Model
         }
         $bool = false;
         foreach($this->viewFields as $word => $data){
-            $this->field($data['field'], $word);
-            if($bool)$this->join($data['table'].' '.$word, $data['on'], $data['type']?:'inner');
+            if(empty($data['table']))continue;
+            if(!empty($data['field']))$this->field($data['field'], $word);
+            if($bool && empty($data['on']))continue;
+            if($bool)$this->join($data['table'].' '.$word, $data['on'], !empty($data['type'])?$data['type']:'inner');
             else $this->table($data['table'], $word);
             $bool = true;
         }

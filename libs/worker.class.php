@@ -35,7 +35,6 @@ Class Worker
             foreach(\Root::$tasks as $conf){
                 if(in_array($worker_id - $server->setting['worker_num'], $conf['ids'])){
                     \Root\Task::$callback = $conf['task_fun'];
-                    L($worker_id . ' => ' . $conf['task_fun']);
                 }
             }
         } else {

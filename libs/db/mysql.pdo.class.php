@@ -171,12 +171,12 @@ class mysqlPDO
 		if(is_array($order)){
 			foreach($order as $key => $val){
 				if(empty($key))
-					$this->order[] = "{$tablename}.{$val} {$asc}";
+					$this->order[] = "{$tablename}.`{$val}` {$asc}";
 				else
-					$this->order[] = "{$tablename}.{$key} {$val}";
+					$this->order[] = "{$tablename}.`{$key}` {$val}";
 			}
 		}else
-			$this->order[] = "{$tablename}.{$order} {$asc}";
+			$this->order[] = "{$tablename}.`{$order}` {$asc}";
 	}
 
 	/**
@@ -269,27 +269,31 @@ class mysqlPDO
 	 * @param string $field
 	 * @param array $having array('字段' => array('比较字符', '值', '字段的作用函数'))
 	 */
-	public function group(string $field, array $having = [])
+	public function group(string $field, array $having = [], string $table = null)
 	{
-		if($this->_filter($field) !== false){
-			$data = [];
-			$tablename = $this->asWord ? : '`'.$this->table.'`';
-			foreach($having as $key => $val){
-				if(is_string($val)){
-					$data[] = "({$tablename}.`{$key}`='{$val}')";
-				}else{
-					$count = count($val);
-					if($count == 2)
-						$data[] = "({$tablename}.`{$key}`{$val[0]}'{$val[1]}')";
-					elseif($count == 3)
-						$data[] = "({$val[2]}({$tablename}.`{$key}`){$val[0]}'{$val[1]}')";
-				}
-			}
-			if(!empty($data))
-				$this->group = "group by `{$field}` having " . join(' and ', $data);
-			else
-				$this->group = "group by `{$field}`";
+		if(empty($field))return false;
+		if(strpos($field, '.') > 0){
+			$arr = explode('.', $field);
+			$table = $arr[0];
+			$field = $arr[1];
 		}
+		$tablename = $table?:($this->asWord?:'`'.$this->table.'`');
+		$data = [];
+		foreach($having as $key => $val){
+			if(is_string($val)){
+				$data[] = "({$tablename}.`{$key}`='{$val}')";
+			}else{
+				$count = count($val);
+				if($count == 2)
+					$data[] = "({$tablename}.`{$key}`{$val[0]}'{$val[1]}')";
+				elseif($count == 3)
+					$data[] = "({$val[2]}({$tablename}.`{$key}`){$val[0]}'{$val[1]}')";
+			}
+		}
+		if(!empty($data))
+			$this->group = "group by {$tablename}.`{$field}` having " . join(' and ', $data);
+		else
+			$this->group = "group by {$tablename}.`{$field}`";
 	}
 
 	/**
@@ -356,7 +360,7 @@ class mysqlPDO
 	public function execute(string $sql, bool $checkTmp = true)
 	{
 		$_sql = $sql;
-		foreach($this->params as $name => $val){
+		foreach($this->params as $val){
 			if(strlen($val) > 200)$val = preg_replace('/\s/m', ' ', substr($val, 0, 200) . '...');
 			$_sql = preg_replace('/\?/', "'".$val."'", $_sql, 1);
 		}
@@ -377,13 +381,21 @@ class mysqlPDO
 
 		if($checkTmp){
 			$table = $this->_table;
-			swoole_event_defer(function() use ($table){
+			if(\Root::$serv->taskworker){
 				foreach(\Root::$worker->tmpTables as $tablename => $tmpTable){
 					if(in_array($table, $tmpTable['tables']) && !in_array($tablename, \Root::$tmpTables)){
 						\Root::$worker->send('updateTmpTables', $tablename);
 					}
 				}
-			});
+			}else{
+				swoole_event_defer(function() use ($table){
+					foreach(\Root::$worker->tmpTables as $tablename => $tmpTable){
+						if(in_array($table, $tmpTable['tables']) && !in_array($tablename, \Root::$tmpTables)){
+							\Root::$worker->send('updateTmpTables', $tablename);
+						}
+					}
+				});
+			}
 		}
 
 		$this->params = [];
@@ -482,7 +494,7 @@ class mysqlPDO
 				unset($this->$field);
 			}
 		}
-		
+
 		//组装数据
 		foreach($dataAll as $datas){
 			$this->_filter($datas);
@@ -490,24 +502,23 @@ class mysqlPDO
 			$arr = array_keys($datas);
 			if(empty($arrKey))$arrKey = $arr;
 			if($arrKey != $arr)continue;
-			$arrKey = $arr;
-			$arrVal[] = $datas;
+			$arrVal[] = array_values($datas);
 		}
 
 		//记录回滚事件
 		$this->link->beginTransaction();
 		//组装SQL语句
-		$this->sql = "Insert into `{$this->table}` {$this->asWord} (`". join('`, `', $arrKey) ."`) values (:{". join('}, :{', $arrKey) ."});";
+		$this->sql = "Insert into `{$this->table}` {$this->asWord} (`". join('`, `', $arr) ."`) values (". join(", ", array_fill(0, count($arr), '?')) .");";
 		try{
 			$st = $this->link->prepare($this->sql);
 			foreach($arrVal as $arr){
-				$st->execute($arr);
 				$sql = $this->sql;
 				foreach($arr as $name => $val){
 					if(strlen($val) > 200)$val = preg_replace('/\s/m', ' ', substr($val, 0, 200) . '...');
-					$sql = str_replace(':{'.$name.'}', "'".$val."'", $sql);
+					$sql = preg_replace('/\?/', "'".$val."'", $sql, 1);
 				}
 				if(\Root::$user)\Root::$user->log('EXECUTE: '. $sql);
+				$st->execute($arr);
 			}
 			$this->link->commit();
 		}catch(\PDOException $e){

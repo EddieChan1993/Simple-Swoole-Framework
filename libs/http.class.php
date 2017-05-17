@@ -166,6 +166,7 @@ class Http
             'cnt_name' => C('APPS.controller'),
             'act_name' => C('APPS.action')
         ];
+
         $route = str_replace(C('APPS.ext'), '', trim($data['server']['request_uri'], '/'));
 
         if(!empty($route)){
@@ -184,7 +185,7 @@ class Http
 
         self::$data = $data;
         \Root::$user = new User($data, $response);
-        self::run($request, $response);
+        self::run($response);
         //回收内存
         self::$data = null;
         \Root::$user = null;
@@ -192,14 +193,13 @@ class Http
 
     /**
      * HTTP请求执行
-     * @param $request
      * @param $response
      */
-    Static Public function run($request, &$response)
+    Static Public function run(&$response)
     {
         //检查缓存
         if(C('HTTP.cache_time')){
-            $key = md5(json_encode([$request->server['request_uri'], $_POST, self::$data['input'], $_FILES]));
+            $key = md5(json_encode([self::$data['server']['request_uri'], $_POST, self::$data['input'], $_FILES]));
             if($pagedata = cache('page_' . $key)){
                 if(C('HTTP.gzip'))$response->gzip(C('HTTP.gzip'));
                 $response->end($pagedata);
@@ -214,7 +214,7 @@ class Http
         $class_name = ucfirst(self::$data['mod_name']) . '\\Controller\\' . ucfirst(self::$data['cnt_name']) . 'Controller';
         if(!isset(\Root::$map[$class_name]) || !in_array(self::$data['act_name'], \Root::$map[$class_name]['methods'])){
             $response->status(404);
-            $response->end('[DeanPHP]404 Not Found!');
+            $response->end('[SSF]404 Not Found!');
             return;
         }
 
@@ -235,7 +235,7 @@ class Http
 
         //记录缓存
         if(C('HTTP.cache_time')){
-            $key = md5(json_encode([$request->server['request_uri'], $_POST, self::$data['input'], $_FILES]));
+            $key = md5(json_encode([self::$data['server']['request_uri'], $_POST, self::$data['input'], $_FILES]));
             cache('page_' . $key, $content, C('HTTP.cache_time'));
         }
 

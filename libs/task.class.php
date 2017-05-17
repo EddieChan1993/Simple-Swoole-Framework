@@ -59,7 +59,7 @@ class Task
         $class_name = ucfirst($data['mod_name']) . '\\Controller\\' . ucfirst($data['cnt_name']) . 'Controller';
         $actname = $data['act_name'];
         if(!isset(\Root::$map[$class_name]) || !in_array($actname, \Root::$map[$class_name]['methods'])){
-            $serv->finish(json_encode(['status' => 0, 'info' => '[DeanPHP]404 Not Found!']));
+            $serv->finish(json_encode(['status' => 0, 'info' => '[SSF]404 Not Found!']));
             return;
         }
 

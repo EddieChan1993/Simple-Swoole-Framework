@@ -55,9 +55,9 @@ Class User
         $this->fd = isset($data['fd'])?$data['fd']:null;
 
         $GLOBALS = [];
-        $GLOBALS['MODULE_NAME'] = $data['mod_name'];
-        $GLOBALS['CONTROLLER_NAME'] = $data['cnt_name'];
-        $GLOBALS['ACTION_NAME'] = isset($data['act_name']) ? $data['act_name'] : null;
+        $this->mod_name = $GLOBALS['MODULE_NAME'] = $data['mod_name'];
+        $this->cnt_name = $GLOBALS['CONTROLLER_NAME'] = $data['cnt_name'];
+        $this->act_name = $GLOBALS['ACTION_NAME'] = isset($data['act_name']) ? $data['act_name'] : null;
         $_SESSION = [];
 
         $this->sess_conf = \Root::$conf['SESSION'];
@@ -90,7 +90,7 @@ Class User
     Public function sessionSave(){
         if(!empty($this->sessid)){
             if($this->response){
-                $this->response->cookie('PHPSESSID', $this->sessid, $this->sess_conf['EXPIRE'] + time(), $this->sess_conf['PATH'], $this->sess_conf['DOMAIN']?:'');
+                $this->response->cookie('PHPSESSID', $this->sessid, 0, $this->sess_conf['PATH'], $this->sess_conf['DOMAIN']?:'');
                 T('__SESSION')->set($this->sessid, [
                     'timeout' => $this->sess_conf['EXPIRE'] + time(),
                     'data' => $_SESSION

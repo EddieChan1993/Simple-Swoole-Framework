@@ -92,7 +92,26 @@ function session($key, $val = '[NULL]')
 					return $data;
 				}
 			} elseif ($val === null) unset($_SESSION[$key]);
-			else return $_SESSION[$key] = $val;
+			else {
+				if(strpos($key, '.') === false){
+					$_SESSION[$key] = $val;
+					return true;
+				} else {
+					$arr = explode('.', $key);
+					if(!array_key_exists($arr[0], $_SESSION))return false;
+					$data = &$_SESSION[$arr[0]];
+					unset($arr[0]);
+					foreach($arr as $v){
+						if(isset($data[$v])){
+							$data = &$data[$v];
+						}else{
+							return false;
+						}
+					}
+					$data = $val;
+					return true;
+				}
+			}
 	}
 }
 

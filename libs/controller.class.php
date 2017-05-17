@@ -14,9 +14,9 @@ Class Controller
     /**
      * 视图变量入库
      * @param mixed $data 变量数组或变量名
-     * @param string $val 变量值
+     * @param mixed $val 变量值
      */
-    protected function assign($data, string $val = '')
+    protected function assign($data, $val = '')
     {
         if(is_array($data)){
             foreach($data as $key => $val){
@@ -130,6 +130,15 @@ Class Controller
             }
         }else
             \Root::$user->response->header($key, $value);
+    }
+
+    /**
+     * 重定向
+     * @param string $url 要被定向的URL
+     */
+    protected function redirect(string $url){
+        $this->header('location', $url);
+        \Root::$user->response->status(302);
     }
 
     /**

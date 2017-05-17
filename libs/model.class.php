@@ -26,10 +26,7 @@ Class Model {
                 $this->config = $this->config[$dbname];
             }
             if(!array_key_exists($this->dbname, $this->db)){
-                if($this->config['COROUTINE'])
-                    $classname = "\\Root\\Db\\{$this->config['DB_TYPE']}Coroutine";
-                else
-                    $classname = "\\Root\\Db\\{$this->config['DB_TYPE']}PDO";
+                $classname = "\\Root\\Db\\{$this->config['DB_TYPE']}PDO";
                 $this->db[$this->dbname] = new $classname($this->config);
             }
         }
